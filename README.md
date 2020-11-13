@@ -64,7 +64,7 @@ The router has been replaced with a *ViewManager* component.  This becomes the r
 
 The *ViewData* class holds the data required to render a View.
 
-```c#
+```cs
 public sealed class ViewData
 {
     /// The type of the View.
@@ -97,7 +97,7 @@ We'll look at ViewManager in sections, the full class file is available in the R
 
 The *ViewManager* implements IComponent directly.  The first section gets the NavigationManager and JSRuntime Interop through DI and declares the three parameter based properties.
 
-```c#
+```cs
 public class ViewManager : IComponent
 {
     [Inject] private NavigationManager NavManager { get; set; }
@@ -117,7 +117,7 @@ public class ViewManager : IComponent
 We manage the ViewData through the *ViewData* property. We keep the previous ViewData so we can return to it when we exit a View based Form. 
 
 
-```c#
+```cs
         public ViewData ViewData
         {
             get
@@ -139,7 +139,7 @@ We manage the ViewData through the *ViewData* property. We keep the previous Vie
 
 Class initialization builds the component render fragment.  This is passed to the renderer whenever the component needs rendering. *Attach* saves the RenderHandle - it gets called by the Renderer when the component is attached to the RenderTree.
 
-```c#
+```cs
 private readonly RenderFragment _componentRenderFragment;
 
 private bool _RenderEventQueued;
@@ -162,7 +162,7 @@ public void Attach(RenderHandle renderHandle)
 
 There are two *InvokeAsync* methods to run Actions and Functions on the Renderer's Dispatcher i.e. the UI context.
 
-```c#
+```cs
 /// Executes the supplied work item on the associated renderer's synchronization context.
 protected Task InvokeAsync(Action workItem) => _renderHandle.Dispatcher.InvokeAsync(workItem);
 
@@ -172,7 +172,7 @@ protected Task InvokeAsync(Func<Task> workItem) => _renderHandle.Dispatcher.Invo
 
 *SetParametersAsync* is fairly simple. It only gets called on startup - being the root component there's nothing to update it's parameters.  It checks for Querystring data and loads any found into ViewData.
 
-```c#
+```cs
 public Task SetParametersAsync(ParameterView parameters)
 {
     parameters.SetParameterProperties(this);
@@ -184,7 +184,7 @@ public Task SetParametersAsync(ParameterView parameters)
 ```
 The View is updated by calling *LoadViewAsync* on the cascaded instance of *ViewManager*.  There are various versions of *LoadViewAsync*, constructing the *ViewData* in various ways.  They all call the core method shown below:
 
-```c#
+```cs
 public Task LoadViewAsync(ViewData viewData = null)
 {
     // can be locked by a component if it has a dirty dataset
@@ -204,7 +204,7 @@ The method updates the *ViewData* property and then calls *Render* to queue a re
 
 The Render method uses *InvokeAsync* to make sure the code runs on the Renderer's synchronisation context.
 
-```c#
+```cs
 private void Render() => InvokeAsync(() =>
 {
     if (!this._RenderEventQueued)
@@ -219,7 +219,7 @@ It queues the component render fragment on to the Renderer's render queue.  Note
 
 The RenderTree Builder process looks like this:
 
-```c#
+```cs
 /// Renders the component.
 protected virtual void BuildRenderTree(RenderTreeBuilder builder)
 {
@@ -233,7 +233,7 @@ protected virtual void BuildRenderTree(RenderTreeBuilder builder)
 ```
 The component wraps all the content in a cascading value of itself - all sub components have access the ViewManager.  The *ChildContent* is the Layout either defined by the View or the default Layout.
 
-```c#
+```cs
 private RenderFragment _layoutViewFragment =>
     builder =>
     {
@@ -266,7 +266,7 @@ private RenderFragment _layoutViewFragment =>
 
 The Layout fragment - the child content of the *ViewManager* - consists of the Modal Dialog component and the Layout.  The View is the *ChildComponent* of the Layout.
 
-```c#
+```cs
 /// Render fragment that renders the View
 private RenderFragment _viewFragment =>
     builder =>
@@ -295,7 +295,7 @@ private RenderFragment _viewFragment =>
 
 The final method defines a fallback fragment to display if there's problems with the Layout or View.
 
-```c#
+```cs
 /// Fallback render fragment if there's no Layout or View specified
 private RenderFragment _fallbackFragment =>
     builder =>
@@ -307,7 +307,7 @@ private RenderFragment _fallbackFragment =>
 ```
 The *ReadViewDataFromQueryString* method is used to load the application at a specific point.  You define the View and the Parameter data in the QueryString.
 
-```c#
+```cs
 private void ReadViewDataFromQueryString()
 {
     var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
@@ -338,7 +338,7 @@ The link shows it in action [Load Weather Report ID 5 - https://cec-blazor-wasm.
 
 The final bit of important code is *ShowModalAsync* which opens any Form - defined by implementing IForm - in the modal Dialog.  The code for the Modal Dialog can be found in the project.  There'll be another article shortly covering the modal Dialog in more detail.
 
-```c#
+```cs
 /// Method to open a Modal Dialog
 public async Task<ModalResult> ShowModalAsync<TForm>(ModalOptions modalOptions) where TForm : IComponent => await this.ModalDialog.Show<TForm>(modalOptions);
 ```
@@ -353,7 +353,7 @@ For a very basic look at it's use lets look at *UIViewLink*, a replacement for *
 
 *UIViewLink* is similar to *NavLink*.  It constructs a clickable link to navigate to a defined View.  The critcal bit is *this.ViewManager.LoadViewAsync(viewData)*.
 
-```c#
+```cs
     public class UIViewLink : UIBase
     {
         /// View Type to Load
@@ -416,7 +416,7 @@ For a very basic look at it's use lets look at *UIViewLink*, a replacement for *
     </li>
 .....
 ```
-```c#
+```cs
  @code {
     [CascadingParameter] public ViewManager ViewManager { get; set; }
 }
